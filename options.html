@@ -37,24 +37,11 @@
   </head>
   <body>
     <h1>Furigana Reader Settings</h1>
-    <p>
-      Store API keys in chrome.storage.local. If you want to avoid storing keys
-      in the extension entirely, enable the proxy option and point the endpoint
-      to your backend relay.
-    </p>
-
-    <label for="api-endpoint">API endpoint</label>
-    <input id="api-endpoint" type="text" placeholder="https://api.example.com/furigana" />
-    <div class="hint">For proxy mode, this should be your backend relay URL.</div>
+    <p>Store API keys in chrome.storage.local. No external server is used.</p>
 
     <label for="api-key">API key</label>
     <input id="api-key" type="password" placeholder="sk-..." />
-    <div class="hint">Required only when not using a proxy.</div>
-
-    <label>
-      <input id="use-proxy" type="checkbox" />
-      Use proxy (do not send API keys from the extension)
-    </label>
+    <div class="hint">Stored locally in your browser.</div>
 
     <button id="save">Save</button>
     <div class="status" id="status"></div>
