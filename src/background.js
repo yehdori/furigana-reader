@@ -92,18 +92,71 @@ async function callFuriganaApi(text) {
   }
 
   const data = await response.json();
-  const outputText =
-    typeof data.output_text === "string"
-      ? data.output_text
-      : data.output?.[0]?.content?.find((item) => item.type === "output_text")
-          ?.text ??
-        data.output?.[0]?.content?.[0]?.text;
+  const outputText = extractOutputText(data);
 
   if (!outputText) {
-    throw new Error("API response did not include output text.");
+    const refusalText = extractRefusalText(data);
+    const errorText =
+      typeof data?.error?.message === "string"
+        ? data.error.message
+        : typeof data?.error === "string"
+          ? data.error
+          : null;
+    throw new Error(
+      refusalText ||
+        errorText ||
+        "API response did not include output text."
+    );
   }
 
   return { html: outputText };
+}
+
+function extractOutputText(data) {
+  if (typeof data?.output_text === "string" && data.output_text.trim()) {
+    return data.output_text;
+  }
+
+  const outputItem = data?.output?.find((item) => item.type === "message") ??
+    data?.output?.[0];
+  const contentItems = outputItem?.content ?? [];
+  const outputTextItem = contentItems.find(
+    (item) => item.type === "output_text" || item.type === "text"
+  );
+
+  if (typeof outputTextItem?.text === "string" && outputTextItem.text.trim()) {
+    return outputTextItem.text;
+  }
+
+  if (typeof contentItems?.[0]?.text === "string" && contentItems[0].text.trim()) {
+    return contentItems[0].text;
+  }
+
+  const choice = data?.choices?.[0];
+  if (
+    typeof choice?.message?.content === "string" &&
+    choice.message.content.trim()
+  ) {
+    return choice.message.content;
+  }
+
+  if (typeof choice?.text === "string" && choice.text.trim()) {
+    return choice.text;
+  }
+
+  return "";
+}
+
+function extractRefusalText(data) {
+  const outputItem = data?.output?.find((item) => item.type === "message") ??
+    data?.output?.[0];
+  const contentItems = outputItem?.content ?? [];
+  const refusalItem = contentItems.find((item) => item.type === "refusal");
+  if (typeof refusalItem?.refusal === "string" && refusalItem.refusal.trim()) {
+    return refusalItem.refusal;
+  }
+
+  return "";
 }
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -118,6 +171,8 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId !== CONTEXT_MENU_ID || !tab?.id) {
     return;
   }
+
+  await sendMessageToTab(tab.id, { type: "furigana:cache-selection" });
 
   const selectionText = info.selectionText?.trim();
   if (!selectionText) {

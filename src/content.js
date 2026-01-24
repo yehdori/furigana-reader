@@ -1,4 +1,5 @@
 const PANEL_ID = "furigana-reader-panel";
+let cachedRange = null;
 
 function ensurePanel() {
   let panel = document.getElementById(PANEL_ID);
@@ -47,10 +48,10 @@ function getSelectionRange() {
 }
 
 function replaceSelectionWithHtml(html) {
-  const range = getSelectionRange();
+  const range = getSelectionRange() ?? cachedRange;
   if (!range) {
     renderPanelMessage("No text selection found on the page.");
-    return;
+    return false;
   }
 
   const container = document.createElement("span");
@@ -67,6 +68,9 @@ function replaceSelectionWithHtml(html) {
   if (selection) {
     selection.removeAllRanges();
   }
+
+  cachedRange = null;
+  return true;
 }
 
 function handleFuriganaResult(payload) {
@@ -83,14 +87,20 @@ function handleFuriganaResult(payload) {
         ? data.furigana
         : JSON.stringify(data, null, 2);
 
-  replaceSelectionWithHtml(html);
-  renderPanelMessage("Furigana applied to the selected text.");
+  const applied = replaceSelectionWithHtml(html);
+  if (applied) {
+    renderPanelMessage("Furigana applied to the selected text.");
+  }
 }
 
 chrome.runtime.onMessage.addListener((message) => {
-  if (message?.type !== "furigana:apply-result") {
+  if (message?.type === "furigana:cache-selection") {
+    const range = getSelectionRange();
+    cachedRange = range ? range.cloneRange() : null;
     return;
   }
 
-  handleFuriganaResult(message);
+  if (message?.type === "furigana:apply-result") {
+    handleFuriganaResult(message);
+  }
 });
