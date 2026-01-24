@@ -3,13 +3,17 @@
   "name": "Furigana Reader",
   "version": "0.1.0",
   "permissions": ["storage"],
-  "host_permissions": ["https://api.openai.com/*"],
+  "host_permissions": ["<all_urls>"],
   "content_scripts": [
     {
-      "matches": ["https://example.com/*"],
+      "matches": ["<all_urls>"],
       "js": ["src/content.js"]
     }
   ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "options_page": "options.html",
   "background": {
     "service_worker": "src/background.js"
   }
