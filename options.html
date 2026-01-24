@@ -39,9 +39,19 @@
     <h1>Furigana Reader Settings</h1>
     <p>Store API keys in chrome.storage.local. No external server is used.</p>
 
+    <label for="api-endpoint">API endpoint</label>
+    <input id="api-endpoint" type="text" placeholder="https://api.example.com/furigana" />
+    <div class="hint">Your Furigana API endpoint.</div>
+
     <label for="api-key">API key</label>
     <input id="api-key" type="password" placeholder="sk-..." />
     <div class="hint">Stored locally in your browser.</div>
+
+    <label>
+      <input id="use-proxy" type="checkbox" />
+      Use proxy (no API key in request)
+    </label>
+    <div class="hint">Disable this to send your API key as a Bearer token.</div>
 
     <button id="save">Save</button>
     <div class="status" id="status"></div>
