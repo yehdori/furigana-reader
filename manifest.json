@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Furigana Reader",
   "version": "0.1.0",
-  "permissions": ["storage"],
+  "permissions": ["contextMenus", "storage"],
   "host_permissions": ["<all_urls>"],
   "content_scripts": [
     {
