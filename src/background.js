@@ -35,7 +35,7 @@ async function callFuriganaApi(text) {
           role: "system",
           content: [
             {
-              type: "text",
+              type: "input_text",
               text:
                 "You are a Japanese ruby annotator. Return ONLY HTML with <ruby> and <rt> tags. Do not include markdown, code fences, explanations, or extra text. Preserve the original text order and punctuation. Only add ruby for kanji that appear in the input. If a word contains no kanji, leave it as plain text. Preserve line breaks exactly as in the input. If the input already contains <ruby>, preserve it and do not alter those parts."
             }
@@ -45,7 +45,7 @@ async function callFuriganaApi(text) {
           role: "user",
           content: [
             {
-              type: "text",
+              type: "input_text",
               text: `Add furigana (ruby tags) to the following Japanese text. Output ONLY HTML with <ruby> and <rt> tags, no extra commentary.\n\nText:\n${text}`
             }
           ]
