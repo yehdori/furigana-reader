@@ -1,7 +1,6 @@
 const DEFAULT_SETTINGS = {
-  apiEndpoint: "https://api.example.com/furigana",
-  apiKey: "",
-  useProxy: true
+  apiEndpoint: "https://api.openai.com/v1/responses",
+  apiKey: ""
 };
 
 const apiEndpointInput = document.getElementById("api-endpoint");
@@ -19,8 +18,7 @@ async function restore() {
 async function save() {
   await chrome.storage.local.set({
     apiEndpoint: apiEndpointInput.value.trim(),
-    apiKey: apiKeyInput.value.trim(),
-    useProxy: useProxyInput.checked
+    apiKey: apiKeyInput.value.trim()
   });
 
   status.textContent = "Saved.";
