@@ -1,5 +1,41 @@
 const PANEL_ID = "furigana-reader-panel";
+const STYLE_ID = "furigana-reader-style";
 let cachedRange = null;
+
+function ensureStyle() {
+  if (document.getElementById(STYLE_ID)) {
+    return;
+  }
+
+  const style = document.createElement("style");
+  style.id = STYLE_ID;
+  style.textContent = `
+.furigana-group {
+  border-radius: 4px;
+  padding: 0 2px;
+  transition: background-color 120ms ease;
+}
+.furigana-highlight {
+  border-radius: 4px;
+  padding: 0 2px;
+  transition: background-color 120ms ease;
+}
+.furigana-highlight rt {
+  border-radius: 4px;
+  padding: 0 2px;
+  transition: background-color 120ms ease;
+}
+.furigana-highlight:hover,
+.furigana-highlight.is-active {
+  background-color: rgba(255, 227, 150, 0.7);
+}
+.furigana-highlight:hover rt,
+.furigana-highlight.is-active rt {
+  background-color: rgba(255, 227, 150, 0.7);
+}
+`;
+  document.head.appendChild(style);
+}
 
 function ensurePanel() {
   let panel = document.getElementById(PANEL_ID);
@@ -48,6 +84,7 @@ function getSelectionRange() {
 }
 
 function replaceSelectionWithHtml(html) {
+  ensureStyle();
   const range = getSelectionRange() ?? cachedRange;
   if (!range) {
     renderPanelMessage("No text selection found on the page.");
@@ -56,6 +93,7 @@ function replaceSelectionWithHtml(html) {
 
   const container = document.createElement("span");
   container.innerHTML = html;
+  markRubyNodes(container);
   const fragment = document.createDocumentFragment();
   while (container.firstChild) {
     fragment.appendChild(container.firstChild);
@@ -92,6 +130,37 @@ function handleFuriganaResult(payload) {
     renderPanelMessage("Furigana applied to the selected text.");
   }
 }
+
+function markRubyNodes(root) {
+  if (!root || root.nodeType !== Node.ELEMENT_NODE) {
+    return;
+  }
+
+  if (root.tagName === "RUBY") {
+    root.classList.add("furigana-highlight");
+    return;
+  }
+
+  for (const child of Array.from(root.children)) {
+    markRubyNodes(child);
+  }
+}
+
+document.addEventListener("click", (event) => {
+  const target = event.target.closest?.("ruby.furigana-highlight");
+  if (!target) {
+    return;
+  }
+
+  const active = document.querySelectorAll(".furigana-highlight.is-active");
+  active.forEach((node) => {
+    if (node !== target) {
+      node.classList.remove("is-active");
+    }
+  });
+
+  target.classList.toggle("is-active");
+});
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message?.type === "furigana:cache-selection") {
