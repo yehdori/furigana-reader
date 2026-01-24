@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Furigana Reader Options</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 24px;
+        max-width: 640px;
+      }
+      label {
+        display: block;
+        margin-top: 16px;
+      }
+      input[type="text"],
+      input[type="password"] {
+        width: 100%;
+        padding: 8px;
+        margin-top: 4px;
+      }
+      .hint {
+        color: #555;
+        font-size: 0.9em;
+        margin-top: 4px;
+      }
+      button {
+        margin-top: 20px;
+        padding: 8px 16px;
+      }
+      .status {
+        margin-top: 12px;
+        color: #1a7f37;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Furigana Reader Settings</h1>
+    <p>
+      Store API keys in chrome.storage. If you want to avoid storing keys in the
+      extension entirely, enable the proxy option and point the endpoint to your
+      backend relay.
+    </p>
+
+    <label for="api-endpoint">API endpoint</label>
+    <input id="api-endpoint" type="text" placeholder="https://api.example.com/furigana" />
+    <div class="hint">For proxy mode, this should be your backend relay URL.</div>
+
+    <label for="api-key">API key</label>
+    <input id="api-key" type="password" placeholder="sk-..." />
+    <div class="hint">Required only when not using a proxy.</div>
+
+    <label>
+      <input id="use-proxy" type="checkbox" />
+      Use proxy (do not send API keys from the extension)
+    </label>
+
+    <button id="save">Save</button>
+    <div class="status" id="status"></div>
+
+    <script src="options.js"></script>
+  </body>
+</html>
