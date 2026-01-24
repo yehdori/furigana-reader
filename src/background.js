@@ -5,6 +5,38 @@ const DEFAULT_SETTINGS = {
 
 const CONTEXT_MENU_ID = "furigana-maker";
 
+function isReceivingEndMissing(error) {
+  const message = error?.message ?? String(error);
+  return message.includes("Receiving end does not exist");
+}
+
+async function sendMessageToTab(tabId, message) {
+  try {
+    await chrome.tabs.sendMessage(tabId, message);
+    return true;
+  } catch (error) {
+    if (isReceivingEndMissing(error)) {
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId },
+          files: ["src/content.js"]
+        });
+        await chrome.tabs.sendMessage(tabId, message);
+        return true;
+      } catch (injectionError) {
+        console.warn(
+          "Furigana Reader: unable to inject content script.",
+          injectionError
+        );
+        return false;
+      }
+    }
+
+    console.warn("Furigana Reader: failed to send message.", error);
+    return false;
+  }
+}
+
 async function loadSettings() {
   const stored = await chrome.storage.local.get(DEFAULT_SETTINGS);
   return { ...DEFAULT_SETTINGS, ...stored };
@@ -89,7 +121,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
   const selectionText = info.selectionText?.trim();
   if (!selectionText) {
-    chrome.tabs.sendMessage(tab.id, {
+    await sendMessageToTab(tab.id, {
       type: "furigana:apply-result",
       ok: false,
       error: "No text selected."
@@ -99,14 +131,14 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
   try {
     const data = await callFuriganaApi(selectionText);
-    chrome.tabs.sendMessage(tab.id, {
+    await sendMessageToTab(tab.id, {
       type: "furigana:apply-result",
       ok: true,
       data,
       selectionText
     });
   } catch (error) {
-    chrome.tabs.sendMessage(tab.id, {
+    await sendMessageToTab(tab.id, {
       type: "furigana:apply-result",
       ok: false,
       error: error.message ?? "API request failed."
