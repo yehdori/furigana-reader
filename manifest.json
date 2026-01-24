@@ -2,18 +2,15 @@
   "manifest_version": 3,
   "name": "Furigana Reader",
   "version": "0.1.0",
-  "description": "Adds furigana via an AI API.",
   "permissions": ["storage"],
-  "host_permissions": ["<all_urls>"],
-  "background": {
-    "service_worker": "background.js"
-  },
+  "host_permissions": ["https://api.openai.com/*"],
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "run_at": "document_idle"
+      "matches": ["https://example.com/*"],
+      "js": ["src/content.js"]
     }
   ],
-  "options_page": "options.html"
+  "background": {
+    "service_worker": "src/background.js"
+  }
 }
