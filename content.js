@@ -1,57 +1,49 @@
-function extractText() {
+let lastSelectionRange = null;
+
+function extractTextFromSelection() {
   const selection = window.getSelection();
-  if (selection && selection.toString().trim()) {
-    return selection.toString().trim();
+  if (!selection || selection.rangeCount === 0) {
+    lastSelectionRange = null;
+    return "";
   }
 
-  return document.body.innerText.trim();
-}
-
-function ensurePanel() {
-  let panel = document.getElementById("furigana-reader-panel");
-  if (panel) {
-    return panel;
+  const text = selection.toString().trim();
+  if (!text) {
+    lastSelectionRange = null;
+    return "";
   }
 
-  panel = document.createElement("div");
-  panel.id = "furigana-reader-panel";
-  panel.style.position = "fixed";
-  panel.style.top = "16px";
-  panel.style.right = "16px";
-  panel.style.width = "360px";
-  panel.style.maxHeight = "80vh";
-  panel.style.overflow = "auto";
-  panel.style.background = "white";
-  panel.style.border = "1px solid #ddd";
-  panel.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
-  panel.style.padding = "12px";
-  panel.style.zIndex = "999999";
-  panel.style.fontFamily = "system-ui, sans-serif";
-  panel.innerHTML = "<strong>Furigana Reader</strong><div id=\"furigana-reader-content\" style=\"margin-top:8px\"></div>";
-
-  document.body.appendChild(panel);
-  return panel;
+  lastSelectionRange = selection.getRangeAt(0).cloneRange();
+  return text;
 }
 
-function renderResult(result) {
-  const panel = ensurePanel();
-  const content = panel.querySelector("#furigana-reader-content");
-  if (!content) {
+function renderResultInSelection(result) {
+  if (!lastSelectionRange) {
+    console.warn("Furigana Reader: no active selection to replace.");
     return;
   }
 
+  const fragment = document.createDocumentFragment();
   if (result.html) {
-    content.innerHTML = result.html;
-    return;
+    const template = document.createElement("template");
+    template.innerHTML = result.html.trim();
+    fragment.appendChild(template.content);
+  } else {
+    const span = document.createElement("span");
+    span.textContent = result.furigana ?? JSON.stringify(result, null, 2);
+    fragment.appendChild(span);
   }
 
-  content.textContent = result.furigana ?? JSON.stringify(result, null, 2);
+  lastSelectionRange.deleteContents();
+  lastSelectionRange.insertNode(fragment);
+  lastSelectionRange = null;
+  window.getSelection()?.removeAllRanges();
 }
 
 async function requestFurigana() {
-  const text = extractText();
+  const text = extractTextFromSelection();
   if (!text) {
-    renderResult({ furigana: "No text found on the page." });
+    console.warn("Furigana Reader: select some text first.");
     return;
   }
 
@@ -61,11 +53,11 @@ async function requestFurigana() {
   });
 
   if (!response?.ok) {
-    renderResult({ furigana: response?.error ?? "Unknown error" });
+    console.error("Furigana Reader:", response?.error ?? "Unknown error");
     return;
   }
 
-  renderResult(response.data);
+  renderResultInSelection(response.data);
 }
 
 requestFurigana();
