@@ -5,7 +5,7 @@ const DEFAULT_SETTINGS = {
 };
 
 async function loadSettings() {
-  const stored = await chrome.storage.sync.get(DEFAULT_SETTINGS);
+  const stored = await chrome.storage.local.get(DEFAULT_SETTINGS);
   return { ...DEFAULT_SETTINGS, ...stored };
 }
 
