@@ -5,14 +5,12 @@ const DEFAULT_SETTINGS = {
 
 const apiEndpointInput = document.getElementById("api-endpoint");
 const apiKeyInput = document.getElementById("api-key");
-const useProxyInput = document.getElementById("use-proxy");
 const status = document.getElementById("status");
 
 async function restore() {
   const stored = await chrome.storage.local.get(DEFAULT_SETTINGS);
   apiEndpointInput.value = stored.apiEndpoint ?? DEFAULT_SETTINGS.apiEndpoint;
   apiKeyInput.value = stored.apiKey ?? "";
-  useProxyInput.checked = stored.useProxy ?? DEFAULT_SETTINGS.useProxy;
 }
 
 async function save() {
