@@ -57,11 +57,17 @@ async function callFuriganaApi(text) {
     Authorization: `Bearer ${settings.apiKey}`,
   };
 
+  const maxOutputTokens = Math.min(
+    8192,
+    Math.max(1024, Math.ceil(text.length * 6)),
+  );
   const response = await fetch(settings.apiEndpoint, {
     method: "POST",
     headers,
     body: JSON.stringify({
       model: "gpt-5-mini",
+      reasoning: { effort: "minimal" },
+      max_output_tokens: maxOutputTokens,
       input: [
         {
           role: "system",
