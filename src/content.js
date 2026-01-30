@@ -1,6 +1,10 @@
 const PANEL_ID = "furigana-reader-panel";
 const STYLE_ID = "furigana-reader-style";
 let cachedRange = null;
+let panelHideTimer = null;
+let panelFadeTimer = null;
+const PANEL_FADE_DELAY_MS = 5000;
+const PANEL_FADE_DURATION_MS = 400;
 
 function ensureStyle() {
   if (document.getElementById(STYLE_ID)) {
@@ -57,10 +61,17 @@ function ensurePanel() {
   panel.style.padding = "12px";
   panel.style.zIndex = "999999";
   panel.style.fontFamily = "system-ui, sans-serif";
+  panel.style.transition = `opacity ${PANEL_FADE_DURATION_MS}ms ease`;
+  panel.style.opacity = "1";
   panel.innerHTML =
     "<strong>Furigana Reader</strong><div id=\"furigana-reader-content\" style=\"margin-top:8px\"></div>";
 
   document.body.appendChild(panel);
+  panel.addEventListener("transitionend", () => {
+    if (panel.style.opacity === "0") {
+      panel.remove();
+    }
+  });
   return panel;
 }
 
@@ -72,6 +83,7 @@ function renderPanelMessage(message) {
   }
 
   content.textContent = message;
+  schedulePanelFade(panel);
 }
 
 function getSelectionRange() {
@@ -129,6 +141,30 @@ function handleFuriganaResult(payload) {
   if (applied) {
     renderPanelMessage("Furigana applied to the selected text.");
   }
+}
+
+function schedulePanelFade(panel) {
+  if (panelHideTimer) {
+    clearTimeout(panelHideTimer);
+    panelHideTimer = null;
+  }
+  if (panelFadeTimer) {
+    clearTimeout(panelFadeTimer);
+    panelFadeTimer = null;
+  }
+
+  panel.style.opacity = "1";
+  panel.style.pointerEvents = "auto";
+
+  panelFadeTimer = setTimeout(() => {
+    panel.style.opacity = "0";
+    panel.style.pointerEvents = "none";
+    panelHideTimer = setTimeout(() => {
+      if (panel.isConnected) {
+        panel.remove();
+      }
+    }, PANEL_FADE_DURATION_MS + 50);
+  }, PANEL_FADE_DELAY_MS);
 }
 
 function markRubyNodes(root) {
